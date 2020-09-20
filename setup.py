@@ -4,7 +4,7 @@ with open("readme.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='hue',
+    name='huecli',
     version='1.9.6',
     scripts=['hue'],
     author="Gage LeBlanc",
