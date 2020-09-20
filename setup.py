@@ -5,7 +5,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name='huecli',
-    version='1.9.7',
+    version='1.9.8',
     scripts=['hue'],
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",
@@ -15,7 +15,8 @@ setuptools.setup(
     url="https://github.com/gageleblanc/hue",
     packages=setuptools.find_packages(),
     install_requires=[
-        'clilib>=1.6.1'
+        'clilib>=1.6.1',
+        'phue'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
