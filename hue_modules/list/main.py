@@ -1,6 +1,6 @@
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
-from phue import Bridge
+from hue_modules.util.bridge import Bridge
 import json
 
 
@@ -8,27 +8,37 @@ class main:
     def __init__(self):
         self.spec = {
             "desc": 'List available lights',
-            "name": 'list'
+            "name": 'list',
+            "positionals": [],
+            "flags": [
+                {
+                    "names": ['-d', '--debug'],
+                    "help": "Add extended output.",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true",
+                    "type": bool
+                },
+                {
+                    "names": ['-a', '--address'],
+                    "help": "IP address of the Hue bridge",
+                    "required": False,
+                    "type": str,
+                    "default": "192.168.1.1"
+                }
+            ]
         }
-        parser, subparser = arg_tools.build_full_parser(self.spec)
-        subparser.add_argument('-d', '--debug', help="Add extended output.", required=False, default=False,
-                                   action='store_true')
-        args = parser.parse_args()
+        args = arg_tools.build_full_subparser(self.spec)
         self.args = args
-        self.args.logger = Util.configure_logging(args, __name__)
+        self.logger = Util.configure_logging(args, __name__)
         self.print_lights()
 
     def print_lights(self):
-        b = Bridge('192.168.1.136')
-
-        # If the app is not registered and the button is not pressed, press the button and call connect() (this only needs to be run a single time)
-        b.connect()
-
-        # Get the bridge state (This returns the full dictionary that you can explore)
-        b.get_api()
+        self.logger.debug("Connecting to Hue bridge on %s" % self.args.address)
+        b = Bridge.init_bridge(self.args.address)
         print("ID\tLight Name\r\n----------------------")
         lights = b.get_light_objects('id')
-        for id,light in lights.items():
+        for id, light in lights.items():
             print("%d\t%s" % (id, light.name))
 
         print("\r\nID\tGroup Name\r\n----------------------")

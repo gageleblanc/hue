@@ -1,6 +1,6 @@
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
-from phue import Bridge
+from hue_modules.util.bridge import Bridge
 import json
 
 
@@ -12,40 +12,61 @@ class main:
         }
         self.spec = {
             "desc": 'Switch lights on and off. Supported subcommands are: {}'.format(", ".join(self.command_methods.keys())),
-            "name": 'switch'
+            "name": 'switch',
+            "positionals": [
+                {
+                    "name": "subcommand",
+                    "metavar": "SUBCOMMAND",
+                    "help": "Subcommand for switch command.",
+                    "default": "on",
+                    "type": str
+                },
+                {
+                    "name": "id",
+                    "metavar": "ID",
+                    "type": int,
+                    "help": "ID of the light or group to manipulate.",
+                    "default": False
+                },
+            ],
+            "flags": [
+                {
+                    "names": ['-d', '--debug'],
+                    "help": "Add extended output.",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true"
+                },
+                {
+                    "names": ['-g', '--group'],
+                    "help": "Switch group instead of individual light",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true"
+                },
+                {
+                    "names": ['-a', '--address'],
+                    "help": "IP address of the Hue bridge",
+                    "required": False,
+                    "type": str,
+                    "default": "192.168.1.1"
+                }
+            ]
         }
-        parser, subparser = arg_tools.build_full_parser(self.spec)
-        subparser.add_argument('subcommand', metavar='SUBCOMMAND', help='Subcommand for switch command.', default=False)
-        subparser.add_argument('id', metavar='ID', help='ID of the light or group to manipulate', type=int,
-                               default=False)
-        subparser.add_argument('-d', '--debug', help="Add extended output.", required=False, default=False,
-                                   action='store_true')
-        subparser.add_argument('-g', '--group', help="Switch group instead of light.", required=False, default=False,
-                               action='store_true')
-        args = parser.parse_args()
+        args = arg_tools.build_full_subparser(self.spec)
         self.args = args
         self.args.logger = Util.configure_logging(args, __name__)
         self.command_methods[args.subcommand]()
 
-    def init_bridge(self):
-        b = Bridge('192.168.1.136')
-
-        # If the app is not registered and the button is not pressed, press the button and call connect() (this only needs to be run a single time)
-        b.connect()
-
-        # Get the bridge state (This returns the full dictionary that you can explore)
-        b.get_api()
-        return b
-
     def light_off(self):
-        b = self.init_bridge()
+        b = Bridge.init_bridge(self.args.address)
         if self.args.group:
             b.set_group(int(self.args.id), 'on', False)
         else:
             b.set_light(int(self.args.id), 'on', False)
 
     def light_on(self):
-        b = self.init_bridge()
+        b = Bridge.init_bridge(self.args.address)
         if self.args.group:
             b.set_group(int(self.args.id), 'on', True)
         else:

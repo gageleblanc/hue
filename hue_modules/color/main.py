@@ -1,40 +1,61 @@
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
-from phue import Bridge
-import json
+from hue_modules.util.bridge import Bridge
 
 
 class main:
     def __init__(self):
         self.spec = {
             "desc": 'Change color of lights',
-            "name": 'color'
+            "name": 'color',
+            "positionals": [
+                {
+                    "name": "id",
+                    "metavar": "ID",
+                    "help": "ID of the light or group to manipulate.",
+                    "type": int,
+                    "default": False
+                },
+                {
+                    "name": "color",
+                    "metavar": "COLOR",
+                    "help": "Hex color to change light to.",
+                    "type": str,
+                    "default": "FFFFFF"
+                }
+            ],
+            "flags": [
+                {
+                    "names": ['-d', '--debug'],
+                    "help": "Add extended output.",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true",
+                    "type": bool
+                },
+                {
+                    "names": ['-g', '--group'],
+                    "help": "Switch group instead of individual light",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true"
+                },
+                {
+                    "names": ['-a', '--address'],
+                    "help": "IP address of the Hue bridge",
+                    "required": False,
+                    "type": str,
+                    "default": "192.168.1.1"
+                }
+            ]
         }
-        parser, subparser = arg_tools.build_full_parser(self.spec)
-        subparser.add_argument('id', metavar='ID', help='ID of the light or group to manipulate', type=int,
-                               default=False)
-        subparser.add_argument('color', metavar='COLOR',  help='Hex color to change light to.', type=str, default=False)
-        subparser.add_argument('-d', '--debug', help="Add extended output.", required=False, default=False,
-                                   action='store_true')
-        subparser.add_argument('-g', '--group', help="Use group instead of light.", required=False, default=False,
-                               action='store_true')
-        args = parser.parse_args()
+        args = arg_tools.build_full_subparser(self.spec)
         self.args = args
         self.args.logger = Util.configure_logging(args, __name__)
         self.change_color()
 
-    def init_bridge(self):
-        b = Bridge('192.168.1.136')
-
-        # If the app is not registered and the button is not pressed, press the button and call connect() (this only needs to be run a single time)
-        b.connect()
-
-        # Get the bridge state (This returns the full dictionary that you can explore)
-        b.get_api()
-        return b
-
     def change_color(self):
-        b = self.init_bridge()
+        b = Bridge.init_bridge(self.args.address)
         if self.args.group:
             b.set_group(int(self.args.id), 'xy', self.convert_color(self.args.color))
         else:

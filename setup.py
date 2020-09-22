@@ -5,7 +5,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name='huecli',
-    version='1.9.8',
+    version='2.0.0',
     scripts=['hue'],
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",
